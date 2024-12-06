@@ -1,31 +1,23 @@
+BUILD_DIR = build
+
 # 定义变量
 CC = gcc
-CFLAGS_DEBUG = -Wall -g -O0 -Werror
-CFLAGS_RELEASE = -O2 -Wall -Werror
-CFLAGS_CHECK = -O2 -Wall -Werror -fsanitize=address
+CFLAGS = -Wall -Werror
 
-# 默认目标
-all: release
+ifeq ($(DEBUG), 1)
+CFLAGS += -g -O0 -D_DEBUG
+endif
 
-# Release 目标
-release: CFLAGS = $(CFLAGS_RELEASE)
-release: camera_test
+ifeq ($(CHECK), 1)
+CFLAGS += -D_DEBUG -O0 -fsanitize=address
+endif
 
-# Debug 目标
-debug: CFLAGS = $(CFLAGS_DEBUG)
-debug: camera_test
+ifeq ($(RELEASE), 1)
+CFLAGS += -O3 -DNDEBUG
+endif
 
-# Check
-check: CFLAGS = $(CFLAGS_CHECK)
-check: camera_test
-
-# 链接目标
-camera_test: test/camera/main.c camera/camera.h
-	$(CC) $(CFLAGS) -I. $< -o $@
+include camera/camera.mk
 
 # 清理目标
 clean:
-	rm -f camera_test
-
-# 伪目标
-.PHONY: all release debug clean
+	rm -f *.o *.d

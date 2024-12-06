@@ -1,5 +1,26 @@
-#ifndef CBOX_CAMERA_H_
-#define CBOX_CAMERA_H_
+#ifndef CBOX_CBOX_CAMERA_H_
+#define CBOX_CBOX_CAMERA_H_
+
+#ifdef CBOX_CAMERA_ENABLE_LOG
+#define CBOX_CAMERA_LOG_ERROR(msg, ...) \
+	do { \
+		fprintf(stderr, "\x1B[31mERROR: [%s][%d] " msg "\e[0m\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+	} while (0)
+
+#define CBOX_CAMERA_LOG_INFO(msg, ...) \
+	do { \
+		fprintf(stdout, "INFO: [%s][%d] " msg "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+	} while (0)
+
+#define CBOX_CAMERA_LOG_WARN(msg, ...) \
+	do { \
+		fprintf(stderr, "\x1B[32mWARN: [%s][%d] " msg "\e[0m\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+	} while (0)
+#else
+#define CBOX_CAMERA_LOG_ERROR(msg, ...)
+#define CBOX_CAMERA_LOG_INFO(msg, ...)
+#define CBOX_CAMERA_LOG_WARN(msg, ...)
+#endif  // CBOX_CAMERA_ENABLE_LOG
 
 #ifdef __cpluscplus
 extern "C" {
@@ -8,10 +29,7 @@ extern "C" {
 #include <stdbool.h>
 #include <unistd.h>
 
-struct cbox_camera_buffer {
-	void *buffer;
-	size_t size;
-};
+struct cbox_camera_buffer;
 typedef struct cbox_camera_buffer cbox_camera_buffer_t;
 
 enum cbox_camera_frame_pixel_format {
@@ -41,8 +59,16 @@ typedef struct cbox_camera cbox_camera_t;
 /* cbox_camera_t *cbox_camera_create(); */
 /* void cbox_camera_destory(cbox_camera_t *camera); */
 
-cbox_camera_t **cbox_get_cameras(int *count);
-void cbox_free_cameras(cbox_camera_t **cameras);
+cbox_camera_error_t cbox_camera_error();
+const char *cbox_camera_strerror();
+
+extern bool cbox_camera_init();
+extern void cbox_camera_destroy();
+
+extern bool cbox_camera_iterate();
+
+extern cbox_camera_t **cbox_get_cameras(int *count);
+extern void cbox_free_cameras(cbox_camera_t **cameras);
 
 // bool cbox_camera_open(cbox_camera_t *camera, cbox_camera_param_t *param);
 
@@ -50,32 +76,13 @@ void cbox_free_cameras(cbox_camera_t **cameras);
 }
 #endif  // __cpluscplus
 
-#endif  // CBOX_CAMERA_H_
+#endif  // CBOX_CBOX_CAMERA_H_
 
 #ifdef CBOX_CAMERA_IMPLEMENTATION
 
-#ifdef CBOX_CAMERA_ENABLE_LOG
-#define CBOX_CAMERA_LOG_ERROR(msg, ...) \
-	do { \
-		fprintf(stderr, "\x1B[31mERROR: [%s][%d] " msg "\e[0m\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-	} while (0)
-
-#define CBOX_CAMERA_LOG_INFO(msg, ...) \
-	do { \
-		fprintf(stdout, "INFO: [%s][%d] " msg "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-	} while (0)
-
-#define CBOX_CAMERA_LOG_WARN(msg, ...) \
-	do { \
-		fprintf(stderr, "\x1B[32mWARN: [%s][%d] " msg "\e[0m\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-	} while (0)
-#else
-#define CBOX_CAMERA_LOG_ERROR(msg, ...)
-#define CBOX_CAMERA_LOG_INFO(msg, ...)
-#define CBOX_CAMERA_LOG_WARN(msg, ...)
-#endif  // CBOX_CAMERA_ENABLE_LOG
-
 #ifdef CBOX_CAMERA_BACKEND_V4L2
+
+#define CBOX_CAMERAS_SIZE 5
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -169,12 +176,12 @@ cbox_camera_t **cbox_get_cameras(int *count) {
 						c++;
 
 						if (cameras == NULL) {
-							cameras_size = c * 3;
+							cameras_size = CBOX_CAMERAS_SIZE;
 							cameras = calloc(cameras_size, sizeof(*camera));
 						}
 
 						if (c - 1 >= cameras_size - 1) {
-							cameras_size = c * 3;
+							cameras_size += 3;
 							cameras = realloc(cameras, sizeof(*camera) * cameras_size);
 						}
 
@@ -196,6 +203,9 @@ cbox_camera_t **cbox_get_cameras(int *count) {
 }
 
 void cbox_free_cameras(cbox_camera_t **cameras) {
+	if (cameras == NULL) {
+		return;
+	}
 	cbox_camera_t **it = cameras;
 	while (true) {
 		if (*it == NULL) {
@@ -211,5 +221,7 @@ void cbox_free_cameras(cbox_camera_t **cameras) {
 #else  // CBOX_CAMERA_BACKEND_V4l2
 #error "Unsupported backend, currently only supports v4l2."
 #endif
+
+#undef CBOX_CAMERAS_SIZE
 
 #endif  // CBOX_CAMERA_IMPLEMENTATION
