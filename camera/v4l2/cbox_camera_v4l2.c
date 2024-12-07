@@ -136,8 +136,8 @@ fail:
 	return NULL;
 }
 
-static bool cbox_v4l2_readdir(DIR *dir, char device_path[512]) {
-	struct dirent *ent;
+static bool cbox_v4l2_readdir(DIR *dir, struct dirent *ent,
+			char device_path[512]) {
 	if ((ent = readdir(dir)) != NULL) {
 		if (strncmp(ent->d_name, "video", 5) == 0) {
 			sprintf(device_path, "/dev/%s", ent->d_name);

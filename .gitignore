@@ -2,3 +2,7 @@
 *.o
 TAGS
 camera_test
+/.cache/
+/.xmake/
+/build/
+/compile_commands.json

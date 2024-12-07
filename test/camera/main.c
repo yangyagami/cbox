@@ -5,6 +5,8 @@
 int main() {
 	int count = 0;
 
+	cbox_camera_init();
+
 	[[maybe_unused]]
 	cbox_camera_t **cameras = cbox_get_cameras(&count);
 

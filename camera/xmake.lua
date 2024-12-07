@@ -1,0 +1,5 @@
+target("camera")
+set_kind("shared")
+add_includedirs(".")
+add_includedirs("include", { public = true })
+add_files("*.c", "v4l2/*.c")
