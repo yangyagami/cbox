@@ -153,33 +153,36 @@ cbox_camera_t **cbox_v4l2_get_cameras(int *count) {
 	int cameras_size = 0;
 	int c = 0;
 
-	DIR *dir;
-	if ((dir = opendir("/dev")) != NULL) {
-		char device_path[512];
-		while (cbox_v4l2_readdir(dir, device_path)) {
-			cbox_camera_t *camera =
-				cbox_v4l2_create_camera(cameras, device_path);
-			if (camera != NULL) {
-				c++;
-
-				if (cameras == NULL) {
-					cameras_size =
-						5;
-					cameras = calloc(cameras_size, sizeof(*camera));
-				}
-
-				if (c - 1 >= cameras_size - 1) {
-					cameras_size += 3;
-					cameras = realloc(cameras, sizeof(*camera) * cameras_size);
-				}
-
-				cameras[c - 1] = camera;
-			}
-		}
-		closedir(dir);
-	} else {
-		CBOX_CAMERA_LOG_ERROR("Could not open /dev directory: %s", strerror(errno));
+	DIR *dir = opendir("/dev");
+	if (dir == NULL) {
+		CBOX_CAMERA_LOG_ERROR("Could not open /dev directory: %s",
+				strerror(errno));
+		return NULL;
 	}
+
+	char device_path[512];
+	while (cbox_v4l2_readdir(dir, device_path)) {
+		cbox_camera_t *camera =
+			cbox_v4l2_create_camera(cameras, device_path);
+		if (camera != NULL) {
+			c++;
+
+			if (cameras == NULL) {
+				cameras_size =
+					5;
+				cameras = calloc(cameras_size, sizeof(*camera));
+			}
+
+			if (c - 1 >= cameras_size - 1) {
+				cameras_size += 3;
+				cameras = realloc(cameras, sizeof(*camera) * cameras_size);
+			}
+
+			cameras[c - 1] = camera;
+		}
+	}
+
+	closedir(dir);
 
 	*count = c;
 
