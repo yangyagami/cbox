@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "cbox_camera_internal.h"
+#include "v4l2/cbox_camera_v4l2.h"
 
 struct api {
 	cbox_camera_t **(*get_cameras)(int *);
@@ -21,6 +22,8 @@ bool cbox_camera_init() {
 
 	assert(api);
 
+	api->get_cameras = cbox_v4l2_get_cameras;
+
 	return true;
 }
 
@@ -31,10 +34,9 @@ void cbox_camera_destroy() {
 cbox_camera_t **cbox_get_cameras(int *count) {
 	assert(api);
 
-	return NULL;
+	return api->get_cameras(count);
 }
 
 void cbox_free_cameras(cbox_camera_t **cameras) {
 	assert(api);
-
 }

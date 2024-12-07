@@ -1,8 +1,6 @@
 #include <stdio.h>
 
-#define CBOX_CAMERA_IMPLEMENTATION
-#define CBOX_CAMERA_BACKEND_V4L2
-#include "camera/camera.h"
+#include "cbox_camera.h"
 
 int main() {
 	int count = 0;
