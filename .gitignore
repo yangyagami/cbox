@@ -1,5 +1,5 @@
-/.cache/
-/.xmake/
-/build/
-/compile_commands.json
+.cache
+.xmake
+build
+compile_commands.json
 *~
