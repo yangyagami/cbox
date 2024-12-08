@@ -1,0 +1,5 @@
+target("array")
+set_kind("shared")
+add_includedirs("include", { public = true })
+add_includedirs(".")
+add_files("*.c")
