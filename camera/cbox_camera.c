@@ -6,9 +6,10 @@
 
 #include "cbox_camera_internal.h"
 #include "v4l2/cbox_camera_v4l2.h"
+#include "cbox_array.h"
 
 struct api {
-	cbox_camera_t **(*get_cameras)(int *);
+	cbox_array_t *(*get_cameras)();
 	void(*cbox_free_cameras)(cbox_camera_t **);
 };
 typedef struct api api_t;
@@ -31,12 +32,13 @@ void cbox_camera_destroy() {
 	free(api);
 }
 
-cbox_camera_t **cbox_get_cameras(int *count) {
+cbox_array_t *cbox_get_cameras() {
 	assert(api);
 
-	return api->get_cameras(count);
+	return api->get_cameras();
 }
 
-void cbox_free_cameras(cbox_camera_t **cameras) {
+void cbox_free_cameras(cbox_array_t *cameras) {
+	(void) cameras;
 	assert(api);
 }

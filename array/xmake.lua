@@ -1,4 +1,4 @@
-target("array")
+target("cbox_array")
 set_kind("shared")
 add_includedirs("include", { public = true })
 add_includedirs(".")

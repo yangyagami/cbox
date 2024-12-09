@@ -29,6 +29,8 @@ extern "C" {
 #include <stdbool.h>
 #include <unistd.h>
 
+#include "cbox_array.h"
+
 struct cbox_camera_buffer;
 typedef struct cbox_camera_buffer cbox_camera_buffer_t;
 
@@ -67,8 +69,8 @@ extern void cbox_camera_destroy();
 
 extern bool cbox_camera_iterate();
 
-extern cbox_camera_t **cbox_get_cameras(int *count);
-extern void cbox_free_cameras(cbox_camera_t **cameras);
+extern cbox_array_t *cbox_get_cameras();
+extern void cbox_free_cameras(cbox_array_t *cameras);
 
 // bool cbox_camera_open(cbox_camera_t *camera, cbox_camera_param_t *param);
 

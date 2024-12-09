@@ -1,4 +1,5 @@
-target("camera")
+target("cbox_camera")
+add_deps("cbox_array")
 set_kind("shared")
 add_includedirs(".")
 add_includedirs("include", { public = true })
