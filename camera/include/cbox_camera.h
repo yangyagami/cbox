@@ -1,27 +1,6 @@
 #ifndef CBOX_CBOX_CAMERA_H_
 #define CBOX_CBOX_CAMERA_H_
 
-#ifdef CBOX_CAMERA_ENABLE_LOG
-#define CBOX_CAMERA_LOG_ERROR(msg, ...) \
-	do { \
-		fprintf(stderr, "\x1B[31mERROR: [%s][%d] " msg "\e[0m\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-	} while (0)
-
-#define CBOX_CAMERA_LOG_INFO(msg, ...) \
-	do { \
-		fprintf(stdout, "INFO: [%s][%d] " msg "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-	} while (0)
-
-#define CBOX_CAMERA_LOG_WARN(msg, ...) \
-	do { \
-		fprintf(stderr, "\x1B[32mWARN: [%s][%d] " msg "\e[0m\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-	} while (0)
-#else
-#define CBOX_CAMERA_LOG_ERROR(msg, ...)
-#define CBOX_CAMERA_LOG_INFO(msg, ...)
-#define CBOX_CAMERA_LOG_WARN(msg, ...)
-#endif  // CBOX_CAMERA_ENABLE_LOG
-
 #ifdef __cpluscplus
 extern "C" {
 #endif  // __cpluscplus
