@@ -1,4 +1,7 @@
 target("array_test")
+add_includedirs("$(projectdir)/3rdparty/minunit")
+add_tests("array_test")
+set_default("false")
 add_deps("cbox_array")
 set_kind("binary")
 add_files("*.c")

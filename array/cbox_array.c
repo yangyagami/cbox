@@ -33,11 +33,17 @@ void cbox_destroy_array(cbox_array_t *array) {
 	free(array);
 }
 
+static int cbox_array_get_index(cbox_array_t *array, int index) {
+	int idx = index < 0 ? (int)(array->size + index) : index;
+	assert(idx >= 0 && (size_t)idx < array->size);
+
+	return idx;
+}
+
 void *cbox_array_get_element(cbox_array_t *array, int index) {
 	assert(array && array->buffer);
 
-        int idx = index < 0 ? (int)(array->size + index) : index;
-	assert(idx >= 0 && (size_t)idx < array->size);
+        int idx = cbox_array_get_index(array, index);
 
 	return array->buffer + idx * array->element_size;
 }
@@ -64,8 +70,7 @@ void cbox_array_add(cbox_array_t *array, void *element) {
 
 void cbox_array_remove(cbox_array_t *array, int index) {
 	assert(array && array->buffer && array->size > 0);
-	int idx = index < 0 ? (int)(array->size + index) : index;
-	assert(idx >= 0 && (size_t)idx < array->size);
+	int idx = cbox_array_get_index(array, index);
 
 	if ((size_t)idx + 1 < array->size) {
 		memmove(array->buffer + idx * array->element_size,

@@ -6,7 +6,7 @@
 
 struct cbox_v4l2_camera_handler {
 	char device_path[512];
-	int fd;
+	int video_fd;
 };
 typedef struct cbox_v4l2_camera_handler cbox_v4l2_camera_handler_t;
 

@@ -9,6 +9,8 @@ int main() {
 	[[maybe_unused]]
 	cbox_array_t *cameras = cbox_get_cameras();
 
+	printf("cameras: %p\n", cameras);
+
 	printf("count: %ld\n", cbox_get_array_size(cameras));
 
 	cbox_free_cameras(cameras);

@@ -22,32 +22,45 @@ static cbox_array_t *cameras = NULL;
 
 bool cbox_v4l2_try_ioctl(int fd, int request, void *output) {
 	int ret;
+	int err;
+	struct timeval tv;
+	fd_set fdset;
+	int select_ret;
+
 ioctl_retry:
 	ret = ioctl(fd, request, output);
+
 	if (ret != -1) {
 		return true;
 	}
-	int err = errno;
+
+	err = errno;
+
 	if (err == EINPROGRESS || err == EAGAIN || err == EBUSY) {
-		fd_set fdset;
+
 		FD_ZERO(&fdset);
 		FD_SET(fd, &fdset);
-		struct timeval tv;
+
 		tv.tv_sec = 5;
 		tv.tv_usec = 0;
-		int select_ret = select(fd + 1, &fdset, NULL, NULL,
+
+		select_ret = select(fd + 1, &fdset, NULL, NULL,
 					&tv);
-		if (select_ret > 0) {
+		if (select_ret == -1) {
 			goto ioctl_retry;
-		} else {
-			if (errno == EBADF) {
-				cbox_camera_errno = CBOX_CAMERA_NO_SUCH_DEVICE;
-			} else {
-				cbox_camera_errno = CBOX_CAMERA_INVALID_PARAM;
-			}
-		        CBOX_CAMERA_LOG_ERROR("select failed: %s", strerror(errno));
-			return false;
 		}
+
+		if (errno == EBADF) {
+			cbox_camera_errno = CBOX_CAMERA_NO_SUCH_DEVICE;
+		} else if (errno == EINVAL) {
+			cbox_camera_errno = CBOX_CAMERA_INVALID_PARAM;
+		} else {
+			// TODO(yangsiyu): Handle error
+		}
+
+		CBOX_CAMERA_LOG_ERROR("select failed: %s", strerror(errno));
+
+		return false;
 	} else {
 		if (errno == EBADF || errno == ENOENT ||
 			errno == ENODEV || errno == EPIPE) {
@@ -69,19 +82,20 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 		// TODO(yangsiyu): Handle error;
 		CBOX_CAMERA_LOG_ERROR("Could not open /dev directory: %s",
 				strerror(errno));
-		return NULL;
+		return cameras;
 	}
 
 	char device_path[512];
 	struct dirent *ent;
 	while ((ent = readdir(dir)) != NULL) {
+		int fd = -1;
 		if (strncmp(ent->d_name, "video", 5) != 0) {
 			goto out;
 		}
 
 		sprintf(device_path, "/dev/%s", ent->d_name);
 
-		int fd = open(device_path, O_RDWR);
+		fd = open(device_path, O_RDWR);
 		if (fd == -1) {
 			// TODO(yangsiyu): Handle error
 			goto out;
@@ -124,7 +138,7 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 			cbox_v4l2_camera_handler_t *handler = NULL;
 			handler = calloc(1, sizeof(*handler));
 
-			handler->fd = -1;
+			handler->video_fd = -1;
 
 			camera->handler = handler;
 
@@ -146,7 +160,9 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 		if (fmt.type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
 			fmt.type == V4L2_CAP_VIDEO_CAPTURE_MPLANE) {
 			cbox_v4l2_camera_handler_t *handler = camera->handler;
-			handler->fd = fd;
+			handler->video_fd = fd;
+
+			continue;
 		}
 
         out:

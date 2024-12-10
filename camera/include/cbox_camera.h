@@ -48,10 +48,11 @@ struct cbox_camera_param {
 typedef struct cbox_camera_param cbox_camera_param_t;
 
 enum cbox_camera_error {
-	CBOX_CAMERA_UNKNOWN = 0,
+	CBOX_CAMERA_NO_ERROR = 0,
 	CBOX_CAMERA_INVALID_PARAM,
 	CBOX_CAMERA_NO_SUCH_DEVICE,
 	CBOX_CAMERA_OVER_TIME,
+	CBOX_CAMERA_UNKNOW,
 };
 typedef enum cbox_camera_error cbox_camera_error_t;
 
@@ -67,7 +68,7 @@ const char *cbox_camera_strerror();
 extern bool cbox_camera_init();
 extern void cbox_camera_destroy();
 
-extern bool cbox_camera_iterate();
+extern void cbox_camera_iterate();
 
 extern cbox_array_t *cbox_get_cameras();
 extern void cbox_free_cameras(cbox_array_t *cameras);
