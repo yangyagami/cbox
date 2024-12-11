@@ -10,7 +10,7 @@
 
 struct api {
 	cbox_array_t *(*get_cameras)();
-	void(*cbox_free_cameras)(cbox_camera_t **);
+	bool(*open_camera)(cbox_camera_t *, cbox_camera_param_t *);
 };
 typedef struct api api_t;
 
@@ -33,12 +33,18 @@ void cbox_camera_destroy() {
 }
 
 cbox_array_t *cbox_get_cameras() {
-	assert(api);
+	assert(api && api->get_cameras);
 
 	return api->get_cameras();
 }
 
-void cbox_free_cameras(cbox_array_t *cameras) {
-	(void) cameras;
-	assert(api);
+bool cbox_camera_open(cbox_camera_t *camera, cbox_camera_param_t *param) {
+	(void) camera;
+	(void) param;
+	return true;
+}
+
+bool cbox_camera_close(cbox_camera_t *camera) {
+	(void) camera;
+	return true;
 }

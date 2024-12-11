@@ -71,8 +71,11 @@ MU_TEST(array_remove_reverse) {
 	}
 }
 
-MU_TEST(destroy_array) {
-	cbox_destroy_array(array);
+MU_TEST(destroy_array) { cbox_destroy_array(array); }
+
+MU_TEST(simple) {
+	cbox_array_t *tmp = cbox_create_array(0, sizeof(int));
+	cbox_destroy_array(tmp);
 }
 
 MU_TEST_SUITE(s1) {
@@ -80,6 +83,7 @@ MU_TEST_SUITE(s1) {
 	MU_RUN_TEST(array_add);
 	MU_RUN_TEST(array_remove);
 	MU_RUN_TEST(destroy_array);
+	MU_RUN_TEST(simple);
 }
 
 MU_TEST_SUITE(s2) {
@@ -87,6 +91,7 @@ MU_TEST_SUITE(s2) {
 	MU_RUN_TEST(array_add);
 	MU_RUN_TEST(array_remove_reverse);
 	MU_RUN_TEST(destroy_array);
+	MU_RUN_TEST(simple);
 }
 
 int main() {

@@ -12,6 +12,7 @@ typedef struct cbox_v4l2_camera_handler cbox_v4l2_camera_handler_t;
 
 bool cbox_v4l2_try_ioctl(int fd, int request, void *output);
 cbox_array_t *cbox_v4l2_get_cameras();
+bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param);
 void cbox_v4l2_free_cameras(cbox_array_t *cameras);
 
 #endif  // CBOX_CAMERA_V4L2_CAMERA_V4L2_H_

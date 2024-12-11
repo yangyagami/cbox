@@ -20,9 +20,10 @@ enum cbox_camera_frame_pixel_format {
 typedef enum cbox_camera_frame_pixel_format cbox_camera_frame_pixel_format_t;
 
 struct cbox_camera_param {
+	cbox_camera_frame_pixel_format_t pixel_fmt;
 	int width;
 	int height;
-	cbox_camera_frame_pixel_format_t pixel_fmt;
+	int fps;
 };
 typedef struct cbox_camera_param cbox_camera_param_t;
 
@@ -38,9 +39,6 @@ typedef enum cbox_camera_error cbox_camera_error_t;
 struct cbox_camera;
 typedef struct cbox_camera cbox_camera_t;
 
-/* cbox_camera_t *cbox_camera_create(); */
-/* void cbox_camera_destory(cbox_camera_t *camera); */
-
 cbox_camera_error_t cbox_camera_error();
 const char *cbox_camera_strerror();
 
@@ -50,9 +48,9 @@ extern void cbox_camera_destroy();
 extern void cbox_camera_iterate();
 
 extern cbox_array_t *cbox_get_cameras();
-extern void cbox_free_cameras(cbox_array_t *cameras);
 
-// bool cbox_camera_open(cbox_camera_t *camera, cbox_camera_param_t *param);
+extern bool cbox_camera_open(cbox_camera_t *camera, cbox_camera_param_t *param);
+extern bool cbox_camera_close(cbox_camera_t *camera);
 
 #ifdef __cpluscplus
 }

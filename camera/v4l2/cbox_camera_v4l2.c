@@ -177,6 +177,43 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 	return cameras;
 }
 
+bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param) {
+	(void) param;
+
+	assert(camera && camera->handler);
+
+	cbox_v4l2_camera_handler_t *handler = camera->handler;
+
+	if (handler->video_fd == -1) {
+		// TODO(yangsiyu): Handler error
+		return false;
+	}
+
+	struct v4l2_fmtdesc fmtdesc;
+        fmtdesc.index = 0;
+        fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	CBOX_CAMERA_LOG_INFO("%s.\n", camera->device_name);
+	CBOX_CAMERA_LOG_INFO("Driver: %s.\n", camera->driver_name);
+	while (cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_ENUM_FMT, &fmtdesc)) {
+		CBOX_CAMERA_LOG_INFO(
+			"\tFormat: %c %c %c %c.\n"
+			"\tFormat description: %s.\n",
+			fmtdesc.pixelformat & 0xFF,
+			(fmtdesc.pixelformat >> 8) & 0xFF,
+			(fmtdesc.pixelformat >> 16) & 0xFF,
+			(fmtdesc.pixelformat >> 24) & 0xFF,
+			fmtdesc.description
+			);
+		CBOX_CAMERA_LOG_INFO("\n");
+		fmtdesc.index++;
+	}
+
+	// TODO(yangsiyu): Handle error
+
+	return true;
+}
+
 void cbox_v4l2_free_cameras(cbox_array_t *cameras) {
 	for (size_t i = 0; i < cbox_get_array_size(cameras); ++i) {
 		[[maybe_unused]]
