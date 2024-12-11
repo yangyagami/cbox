@@ -14,6 +14,11 @@
 		fprintf(stdout, "INFO: " msg "\n", ##__VA_ARGS__); \
 	} while (0)
 
+#define CBOX_CAMERA_LOG_INFO_PLAIN(msg, ...) \
+	do { \
+		fprintf(stdout, "" msg "\n", ##__VA_ARGS__); \
+	} while (0)
+
 #define CBOX_CAMERA_LOG_WARN(msg, ...) \
 	do { \
 		fprintf(stderr, "\x1B[32mWARN: " msg "\e[0m\n", ##__VA_ARGS__); \
@@ -21,6 +26,7 @@
 #else
 #define CBOX_CAMERA_LOG_ERROR(msg, ...)
 #define CBOX_CAMERA_LOG_INFO(msg, ...)
+#define CBOX_CAMERA_LOG_INFO_PLAIN(msg, ...)
 #define CBOX_CAMERA_LOG_WARN(msg, ...)
 #endif  // CBOX_CAMERA_ENABLE_LOG
 

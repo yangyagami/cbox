@@ -50,23 +50,30 @@ ioctl_retry:
 			goto ioctl_retry;
 		}
 
-		if (errno == EBADF) {
+		err = errno;
+
+		if (err == EBADF) {
 			cbox_camera_errno = CBOX_CAMERA_NO_SUCH_DEVICE;
-		} else if (errno == EINVAL) {
+		} else if (err == EINVAL) {
 			cbox_camera_errno = CBOX_CAMERA_INVALID_PARAM;
 		} else {
 			// TODO(yangsiyu): Handle error
 		}
 
-		CBOX_CAMERA_LOG_ERROR("select failed: %s", strerror(errno));
+		CBOX_CAMERA_LOG_ERROR("select failed: %s", strerror(err));
 
 		return false;
 	} else {
-		if (errno == EBADF || errno == ENOENT ||
-			errno == ENODEV || errno == EPIPE) {
+		if (err == EBADF || err == ENOENT ||
+			err == ENODEV || err == EPIPE) {
 			// TODO(yangsiyu): Handle error
 			cbox_camera_errno = CBOX_CAMERA_NO_SUCH_DEVICE;
 		}
+	}
+
+	// TODO(yangsiyu): Handle errno
+	if (err == EINVAL) {
+		cbox_camera_errno = CBOX_CAMERA_INVALID_PARAM;
 	}
 	return false;
 }
@@ -153,12 +160,14 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 		assert(camera);
 
 		struct v4l2_format fmt;
+		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
 		if (!cbox_v4l2_try_ioctl(fd, VIDIOC_G_FMT, &fmt)) {
 			goto out;
 		}
 
 		if (fmt.type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-			fmt.type == V4L2_CAP_VIDEO_CAPTURE_MPLANE) {
+			fmt.type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
 			cbox_v4l2_camera_handler_t *handler = camera->handler;
 			handler->video_fd = fd;
 
@@ -177,6 +186,61 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 	return cameras;
 }
 
+static void query_frame_interval(cbox_v4l2_camera_handler_t *handler,
+                                uint32_t pixelfmt, int width, int height) {
+	assert(handler);
+
+	struct v4l2_frmivalenum frmival;
+	frmival.index = 0;
+	frmival.pixel_format = pixelfmt;
+	frmival.width = width;
+	frmival.height = height;
+
+	int fps_list[512] = { 0 };
+	while (cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival)) {
+		fps_list[frmival.index] =
+			frmival.discrete.denominator / frmival.discrete.numerator;
+		frmival.index++;
+	}
+
+	if (frmival.index <= 0) {
+		return;
+	}
+
+	char buffer[512] = { 0 };
+	for (size_t i = 0; i < frmival.index; i++) {
+		char tmp[20] = { 0 };
+		sprintf(tmp, "%d ", fps_list[i]);
+		strcat(buffer, tmp);
+	}
+
+	CBOX_CAMERA_LOG_INFO_PLAIN(
+		"\t\t\tfps: %s",
+		buffer);
+}
+
+static void query_frame_size(cbox_v4l2_camera_handler_t *handler,
+                             uint32_t pixelfmt) {
+	assert(handler);
+
+	struct v4l2_frmsizeenum frmsize;
+	frmsize.pixel_format = pixelfmt;
+	frmsize.index = 0;
+
+	while (cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_ENUM_FRAMESIZES, &frmsize)) {
+		CBOX_CAMERA_LOG_INFO_PLAIN(
+			"\t\twidth: %d, height: %d",
+			frmsize.discrete.width,
+			frmsize.discrete.height);
+		query_frame_interval(
+			handler,
+			pixelfmt,
+			frmsize.discrete.width,
+			frmsize.discrete.height);
+		frmsize.index++;
+	}
+}
+
 bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param) {
 	(void) param;
 
@@ -193,19 +257,19 @@ bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param) {
         fmtdesc.index = 0;
         fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-	CBOX_CAMERA_LOG_INFO("%s.\n", camera->device_name);
-	CBOX_CAMERA_LOG_INFO("Driver: %s.\n", camera->driver_name);
+	CBOX_CAMERA_LOG_INFO_PLAIN("Camera: %s.", camera->device_name);
+	CBOX_CAMERA_LOG_INFO_PLAIN("Driver: %s.", camera->driver_name);
 	while (cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_ENUM_FMT, &fmtdesc)) {
-		CBOX_CAMERA_LOG_INFO(
+		CBOX_CAMERA_LOG_INFO_PLAIN(
 			"\tFormat: %c %c %c %c.\n"
-			"\tFormat description: %s.\n",
+			"\tFormat description: %s.",
 			fmtdesc.pixelformat & 0xFF,
 			(fmtdesc.pixelformat >> 8) & 0xFF,
 			(fmtdesc.pixelformat >> 16) & 0xFF,
 			(fmtdesc.pixelformat >> 24) & 0xFF,
 			fmtdesc.description
 			);
-		CBOX_CAMERA_LOG_INFO("\n");
+		query_frame_size(handler, fmtdesc.pixelformat);
 		fmtdesc.index++;
 	}
 
