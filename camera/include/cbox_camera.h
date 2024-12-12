@@ -10,8 +10,8 @@ extern "C" {
 
 #include "cbox_array.h"
 
-struct cbox_camera_buffer;
-typedef struct cbox_camera_buffer cbox_camera_buffer_t;
+struct cbox_camera_frame;
+typedef struct cbox_camera_frame cbox_camera_frame_t;
 
 enum cbox_camera_frame_pixel_format {
 	MJPEG = 0,

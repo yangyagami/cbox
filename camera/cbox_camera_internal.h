@@ -6,6 +6,7 @@ extern "C" {
 #endif  // __cplusplus
 
 #include "cbox_camera.h"
+#include "cbox_queue.h"
 
 #ifdef CBOX_CAMERA_ENABLE_LOG
 #define CBOX_CAMERA_LOG_ERROR(msg, ...) \
@@ -34,7 +35,7 @@ extern "C" {
 #define CBOX_CAMERA_LOG_WARN(msg, ...)
 #endif  // CBOX_CAMERA_ENABLE_LOG
 
-struct cbox_camera_buffer {
+struct cbox_camera_frame {
 	size_t size;
 	void *buffer;
 };
@@ -45,6 +46,8 @@ struct cbox_camera {
 	char driver_name[512];
 	bool stream_opened;
 	void *handler;
+	cbox_array_t *frame_array;
+	size_t frame_index;
 };
 
 extern cbox_camera_error_t cbox_camera_errno;

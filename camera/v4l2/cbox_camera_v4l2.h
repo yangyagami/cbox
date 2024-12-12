@@ -7,8 +7,10 @@ extern "C" {
 
 #include "cbox_camera.h"
 #include "cbox_array.h"
+#include "cbox_camera_internal.h"
 
 struct cbox_v4l2_camera_handler {
+	cbox_camera_frame_t *frames;
 	char device_path[512];
 	int video_fd;
 };

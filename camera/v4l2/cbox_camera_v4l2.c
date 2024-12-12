@@ -13,12 +13,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#include <sys/mman.h>
 
 #include "cbox_camera.h"
 #include "cbox_camera_internal.h"
 #include "cbox_array.h"
+#include "cbox_queue.h"
 
 #define CBOX_V4L2_CAMERA_BUFFER_COUNT (6)
+#define CBOX_V4L2_CAMERA_FRAME_ARRAY_LIMIT (12)
 
 static cbox_array_t *cameras = NULL;
 
@@ -150,6 +153,10 @@ cbox_array_t *cbox_v4l2_get_cameras() {
 			handler->video_fd = -1;
 
 			camera->handler = handler;
+
+			camera->frame_array = cbox_create_array(
+				CBOX_V4L2_CAMERA_FRAME_ARRAY_LIMIT,
+				sizeof(cbox_camera_frame_t*));
 
 			strcpy(camera->device_name, (char *)cap.card);
 			strcpy(camera->driver_name, (char *)cap.driver);
@@ -295,6 +302,44 @@ bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param) {
 		// TODO(yangsiyu): Handle param...
 	}
 
+	struct v4l2_requestbuffers reqbufs;
+	reqbufs.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	reqbufs.memory = V4L2_MEMORY_MMAP;
+	reqbufs.count = CBOX_V4L2_CAMERA_BUFFER_COUNT;
+
+	if (!cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_REQBUFS, &reqbufs)) {
+		// TODO(yangsiyu): Handle error...
+		return false;
+	}
+
+	handler->frames = calloc(reqbufs.count, sizeof(*handler->frames));
+
+	for (size_t i = 0; i < reqbufs.count; ++i) {
+		struct v4l2_buffer tmp;
+		tmp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		tmp.memory = V4L2_MEMORY_MMAP;
+		tmp.index = i;
+
+		if (!cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_QUERYBUF, &tmp)) {
+			// TODO(yangsiyu): Handler error...
+			return false;
+		}
+
+		handler->frames[i].size = tmp.length;
+		handler->frames[i].buffer = mmap(
+                        NULL,
+                        tmp.length,
+                        PROT_READ | PROT_WRITE,
+                        MAP_SHARED,
+                        handler->video_fd,
+                        tmp.m.offset);
+
+		if (handler->frames[i].buffer == MAP_FAILED) {
+			// TODO(yangsiyu): Handler error...
+			return false;
+		}
+
+	}
 
 
 	// TODO(yangsiyu): Handle error
@@ -305,7 +350,11 @@ bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param) {
 static void destroy_camera(cbox_camera_t *camera) {
 	if (camera) {
 		if (camera->handler) {
+			// TODO(yangsiyu): Free frames...
 			free(camera->handler);
+		}
+		if (camera->frame_array) {
+			cbox_destroy_array(camera->frame_array);
 		}
 		free(camera);
 	}
@@ -323,3 +372,4 @@ void cbox_v4l2_free_cameras() {
 }
 
 #undef CBOX_V4L2_CAMERA_BUFFER_COUNT
+#undef CBOX_V4L2_CAMERA_FRAME_ARRAY_LIMIT

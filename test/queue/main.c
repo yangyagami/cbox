@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "minunit.h"
 
@@ -43,6 +44,7 @@ MU_TEST(dequeue) {
 	while (!cbox_queue_empty(queue)) {
 		int *tmp = cbox_queue_dequeue(queue);
 		mu_check(*tmp == arr[i++]);
+		free(tmp);
 	}
 
 	mu_check(cbox_queue_empty(queue));

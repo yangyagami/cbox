@@ -47,6 +47,7 @@ void *cbox_queue_dequeue(cbox_queue_t *queue) {
 	assert(!cbox_queue_empty(queue));
 
 	void *tmp = queue->buffer[queue->front];
+	queue->buffer[queue->front] = NULL;
 	queue->front = (queue->front + 1) % CBOX_QUEUE_MAX_SIZE;
 
 	return tmp;
