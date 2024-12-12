@@ -1,6 +1,10 @@
 #ifndef CBOX_CAMERA_CBOX_CAMERA_INTERNAL_H_
 #define CBOX_CAMERA_CBOX_CAMERA_INTERNAL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 #include "cbox_camera.h"
 
 #ifdef CBOX_CAMERA_ENABLE_LOG
@@ -30,6 +34,11 @@
 #define CBOX_CAMERA_LOG_WARN(msg, ...)
 #endif  // CBOX_CAMERA_ENABLE_LOG
 
+struct cbox_camera_buffer {
+	size_t size;
+	void *buffer;
+};
+
 struct cbox_camera {
 	char bus_info[512];
 	char device_name[512];
@@ -37,6 +46,11 @@ struct cbox_camera {
 	bool stream_opened;
 	void *handler;
 };
+
 extern cbox_camera_error_t cbox_camera_errno;
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
 
 #endif  // CBOX_CAMERA_CBOX_CAMERA_INTERNAL_H_

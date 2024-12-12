@@ -1,9 +1,9 @@
 #ifndef CBOX_ARRAY_CBOX_ARRAY_H_
 #define CBOX_ARRAY_CBOX_ARRAY_H_
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 extern "C" {
-#endif  // __cpluscplus
+#endif  // __cplusplus
 
 #include <stddef.h>
 
@@ -21,8 +21,8 @@ extern void cbox_array_remove(cbox_array_t *array, int index);
 
 extern size_t cbox_get_array_size(cbox_array_t *array);
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 }
-#endif  // __cpluscplus
+#endif  // __cplusplus
 
 #endif  // CBOX_ARRAY_CBOX_ARRAY_H_

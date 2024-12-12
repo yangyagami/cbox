@@ -9,3 +9,5 @@ includes("camera", "test/camera")
 
 includes("array", "test/array")
 
+includes("queue", "test/queue")
+

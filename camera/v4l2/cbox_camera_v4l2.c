@@ -18,6 +18,8 @@
 #include "cbox_camera_internal.h"
 #include "cbox_array.h"
 
+#define CBOX_V4L2_CAMERA_BUFFER_COUNT (6)
+
 static cbox_array_t *cameras = NULL;
 
 bool cbox_v4l2_try_ioctl(int fd, int request, void *output) {
@@ -197,9 +199,25 @@ static void query_frame_interval(cbox_v4l2_camera_handler_t *handler,
 	frmival.height = height;
 
 	int fps_list[512] = { 0 };
+	int fps_count = 0;
 	while (cbox_v4l2_try_ioctl(handler->video_fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival)) {
-		fps_list[frmival.index] =
-			frmival.discrete.denominator / frmival.discrete.numerator;
+		// TODO(yangsiyu): Handle different type...
+		if (frmival.type != V4L2_FRMIVAL_TYPE_DISCRETE) {
+			break;
+		}
+
+		int fps = frmival.discrete.denominator / frmival.discrete.numerator;
+
+		for (uint32_t i = 0; i < frmival.index; i++) {
+			if (fps_list[i] == fps) {
+				goto out;
+			}
+		}
+
+		fps_list[frmival.index] = fps;
+		fps_count++;
+
+	out:
 		frmival.index++;
 	}
 
@@ -208,7 +226,7 @@ static void query_frame_interval(cbox_v4l2_camera_handler_t *handler,
 	}
 
 	char buffer[512] = { 0 };
-	for (size_t i = 0; i < frmival.index; i++) {
+	for (int i = 0; i < fps_count; i++) {
 		char tmp[20] = { 0 };
 		sprintf(tmp, "%d ", fps_list[i]);
 		strcat(buffer, tmp);
@@ -273,20 +291,35 @@ bool cbox_v4l2_open_camera(cbox_camera_t *camera, cbox_camera_param_t *param) {
 		fmtdesc.index++;
 	}
 
+	if (param != NULL) {
+		// TODO(yangsiyu): Handle param...
+	}
+
+
+
 	// TODO(yangsiyu): Handle error
 
 	return true;
 }
 
-void cbox_v4l2_free_cameras(cbox_array_t *cameras) {
-	for (size_t i = 0; i < cbox_get_array_size(cameras); ++i) {
-		[[maybe_unused]]
-		cbox_camera_t *camera =
-			cbox_array_get_element(cameras, i);
+static void destroy_camera(cbox_camera_t *camera) {
+	if (camera) {
+		if (camera->handler) {
+			free(camera->handler);
+		}
+		free(camera);
+	}
+}
 
-		// TODO(yangsiyu): Free resources
+void cbox_v4l2_free_cameras() {
+	for (size_t i = 0; i < cbox_get_array_size(cameras); ++i) {
+		cbox_camera_t *camera =
+			*(cbox_camera_t**)cbox_array_get_element(cameras, i);
+
+		destroy_camera(camera);
 	}
 
 	cbox_destroy_array(cameras);
 }
 
+#undef CBOX_V4L2_CAMERA_BUFFER_COUNT

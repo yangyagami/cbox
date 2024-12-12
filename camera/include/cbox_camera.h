@@ -1,9 +1,9 @@
 #ifndef CBOX_CBOX_CAMERA_H_
 #define CBOX_CBOX_CAMERA_H_
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 extern "C" {
-#endif  // __cpluscplus
+#endif  // __cplusplus
 
 #include <stdbool.h>
 #include <unistd.h>
@@ -52,8 +52,8 @@ extern cbox_array_t *cbox_get_cameras();
 extern bool cbox_camera_open(cbox_camera_t *camera, cbox_camera_param_t *param);
 extern bool cbox_camera_close(cbox_camera_t *camera);
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 }
-#endif  // __cpluscplus
+#endif  // __cplusplus
 
 #endif  // CBOX_CBOX_CAMERA_H_
